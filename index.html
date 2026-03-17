@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>training lab · ajnm</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #080808;
+      --surface:    #0F0F0F;
+      --surface-2:  #161616;
+      --border:     #1C1C1C;
+      --border-2:   #252525;
+      --accent:     #C8FF57;
+      --accent-dim: rgba(200,255,87,0.07);
+      --red:        #FF4747;
+      --red-dim:    rgba(255,71,71,0.09);
+      --blue:       #4DA6FF;
+      --blue-dim:   rgba(77,166,255,0.09);
+      --amber:      #FFB020;
+      --amber-dim:  rgba(255,176,32,0.09);
+      --text:       #EFEFEF;
+      --muted:      #484848;
+      --muted-2:    #636363;
+      --r:          10px;
+      --r-sm:       6px;
+    }
+
+    html { font-size: 13px; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      line-height: 1.4;
+    }
+
+    /* HEADER */
+    .header {
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      position: sticky;
+      top: 0;
+      background: rgba(8,8,8,0.97);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+    }
+
+    .hbrand {
+      font-family: 'Bebas Neue';
+      font-size: 19px;
+      letter-spacing: 3px;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .hsep {
+      width: 1px; height: 18px;
+      background: var(--border-2);
+      flex-shrink: 0;
+    }
+
+    .hkpis { display: flex; gap: 18px; flex: 1; }
+
+    .hkpi { display: flex; align-items: baseline; gap: 4px; }
+
+    .hk-lbl {
+      font-family: 'DM Mono';
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+    }
+
+    .hk-val {
+      font-family: 'DM Mono';
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .hk-val.ctl  { color: var(--blue); }
+    .hk-val.atl  { color: var(--red); }
+    .hk-val.tsb  { color: var(--amber); }
+    .hk-val.vo2  { color: var(--accent); }
+
+    .hstatus {
+      margin-left: auto;
+      font-family: 'DM Mono';
+      font-size: 9px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      border: 1px solid rgba(255,176,32,0.35);
+      color: var(--amber);
+      background: var(--amber-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      flex-shrink: 0;
+    }
+
+    /* MAIN */
+    .main {
+      padding: 18px 24px 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* CARD */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 18px 20px;
+    }
+
+    .ch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .ch-t {
+      font-family: 'Bebas Neue';
+      font-size: 13px;
+      letter-spacing: 2px;
+      color: var(--muted-2);
+    }
+
+    .badge {
+      font-family: 'DM Mono';
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      color: var(--muted);
+    }
+
+    /* ROW GRIDS */
+    .row-32 { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; }
+    .row-2  { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+    .col    { display: flex; flex-direction: column; gap: 14px; }
+
+    /* CHART LEGENDS */
+    .leg { display: flex; gap: 12px; }
+    .leg-i { display: flex; align-items: center; gap: 5px; font-family: 'DM Mono'; font-size: 10px; color: var(--muted-2); }
+    .leg-d { width: 7px; height: 7px; border-radius: 50%; }
+
+    /* VO2 */
+    .vo2-hero { display: flex; align-items: baseline; gap: 7px; margin-bottom: 10px; }
+    .vo2-n { font-family: 'Bebas Neue'; font-size: 54px; line-height: 1; color: var(--accent); }
+    .vo2-u { font-family: 'DM Mono'; font-size: 11px; color: var(--muted); }
+    .delta {
+      font-family: 'DM Mono'; font-size: 10px; padding: 2px 7px;
+      border-radius: 4px; color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(200,255,87,0.2);
+    }
+
+    /* RECENT WORKOUTS */
+    .wlist { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: 220px; }
+    .wi {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 11px; background: var(--surface-2);
+      border: 1px solid var(--border); border-radius: var(--r-sm);
+      transition: border-color 0.12s; cursor: default;
+    }
+    .wi:hover { border-color: var(--border-2); }
+    .wi-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .wi-info { flex: 1; min-width: 0; }
+    .wi-name { font-size: 11px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wi-meta { font-family: 'DM Mono'; font-size: 9px; color: var(--muted); margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+    .ztag { font-family: 'DM Mono'; font-size: 8px; padding: 1px 5px; border-radius: 3px; border: 1px solid; }
+    .ztag.z2 { color: var(--blue); border-color: rgba(77,166,255,0.3); background: var(--blue-dim); }
+    .ztag.z4 { color: var(--red);  border-color: rgba(255,71,71,0.3);  background: var(--red-dim); }
+    .wi-tss { font-family: 'DM Mono'; font-size: 10px; color: var(--muted); white-space: nowrap; }
+
+    /* GAIT */
+    .gait-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+    .gm { display: flex; flex-direction: column; align-items: center; }
+    .gm-ring { position: relative; width: 84px; height: 84px; margin-bottom: 9px; }
+    .gm-ring svg { transform: rotate(-90deg); width: 84px; height: 84px; }
+    .gm-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .gm-val { font-family: 'DM Mono'; font-size: 15px; font-weight: 500; line-height: 1; }
+    .gm-unit { font-family: 'DM Mono'; font-size: 9px; color: var(--muted); margin-top: 2px; }
+    .gm-name { font-size: 11px; color: var(--muted-2); text-align: center; margin-bottom: 3px; }
+    .gm-status { font-family: 'DM Mono'; font-size: 9px; text-align: center; }
+    .gm-status.ok   { color: var(--accent); }
+    .gm-status.warn { color: var(--amber); }
+
+    /* PLANNER */
+    .planner-wrap { display: flex; gap: 14px; }
+
+    .plib {
+      width: 152px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .plib-t { font-family: 'Bebas Neue'; font-size: 12px; letter-spacing: 1.5px; color: var(--muted); }
+
+    .ppills { display: flex; flex-direction: column; gap: 5px; }
+
+    .ppill {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--surface-2);
+      cursor: grab;
+      user-select: none;
+      transition: border-color 0.12s, transform 0.1s;
+    }
+    .ppill:hover { border-color: var(--border-2); transform: translateX(2px); }
+    .ppill:active { cursor: grabbing; }
+    .ppill.dragging { opacity: 0.3; }
+    .ppill-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .ppill-name { font-size: 10px; font-weight: 500; }
+    .ppill-detail { font-family: 'DM Mono'; font-size: 8px; color: var(--muted); margin-top: 1px; }
+
+    .prec {
+      background: var(--accent-dim);
+      border: 1px solid rgba(200,255,87,0.13);
+      border-radius: var(--r-sm);
+      padding: 9px 10px;
+    }
+    .prec-t { font-family: 'DM Mono'; font-size: 9px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .prec-body { font-size: 10px; color: rgba(240,240,240,0.55); line-height: 1.6; }
+
+    .pvol { display: flex; align-items: center; gap: 8px; }
+    .pvol-lbl { font-family: 'DM Mono'; font-size: 9px; color: var(--muted); white-space: nowrap; }
+    .pvol-track { flex: 1; height: 3px; background: var(--surface-2); border-radius: 100px; overflow: hidden; min-width: 60px; }
+    .pvol-fill { height: 100%; background: var(--accent); border-radius: 100px; transition: width 0.4s ease; }
+    .pvol-val { font-family: 'DM Mono'; font-size: 9px; color: var(--muted); white-space: nowrap; }
+
+    .pgrid { flex: 1; display: grid; grid-template-columns: repeat(7,1fr); gap: 8px; }
+
+    .pday { display: flex; flex-direction: column; gap: 5px; }
+
+    .pday-lbl { font-family: 'Bebas Neue'; font-size: 13px; letter-spacing: 1px; color: var(--muted); text-align: center; }
+    .pday-lbl.today { color: var(--accent); }
+    .pday-dt { display: block; font-family: 'DM Mono'; font-size: 9px; color: var(--muted); text-align: center; margin-top: 1px; }
+
+    .pslot {
+      min-height: 72px;
+      border: 1px dashed var(--border);
+      border-radius: var(--r-sm);
+      padding: 5px;
+      display: flex; flex-direction: column; gap: 4px;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .pslot.dragover { border-color: var(--accent); border-style: solid; background: var(--accent-dim); }
+
+    .pcard {
+      border-radius: 5px; padding: 5px 7px;
+      border: 1px solid transparent;
+      cursor: grab; position: relative;
+      user-select: none; transition: opacity 0.12s;
+    }
+    .pcard:active { cursor: grabbing; }
+    .pcard.dragging { opacity: 0.25; }
+    .pcard-name { font-size: 10px; font-weight: 600; padding-right: 12px; }
+    .pcard-tss { font-family: 'DM Mono'; font-size: 8px; margin-top: 2px; opacity: 0.65; }
+    .pcard-rm {
+      position: absolute; top: 3px; right: 4px; font-size: 9px;
+      opacity: 0; cursor: pointer; color: rgba(255,255,255,0.5);
+      transition: opacity 0.1s; background: none; border: none; line-height: 1;
+    }
+    .pcard:hover .pcard-rm { opacity: 1; }
+
+    /* type colors */
+    .t-z2      { background: rgba(77,166,255,0.11); border-color: rgba(77,166,255,0.22) !important; }
+    .t-z2      .pcard-name { color: var(--blue); }
+    .dot-z2    { background: var(--blue); }
+    .t-quality { background: rgba(255,71,71,0.11);  border-color: rgba(255,71,71,0.22)  !important; }
+    .t-quality .pcard-name { color: var(--red); }
+    .dot-quality { background: var(--red); }
+    .t-cycling { background: rgba(200,255,87,0.09); border-color: rgba(200,255,87,0.18) !important; }
+    .t-cycling .pcard-name { color: var(--accent); }
+    .dot-cycling { background: var(--accent); }
+    .t-gait    { background: rgba(255,176,32,0.1);  border-color: rgba(255,176,32,0.2)  !important; }
+    .t-gait    .pcard-name { color: var(--amber); }
+    .dot-gait  { background: var(--amber); }
+    .t-rest    { background: rgba(60,60,60,0.15);   border-color: rgba(60,60,60,0.25)   !important; }
+    .t-rest    .pcard-name { color: #555; }
+    .dot-rest  { background: #383838; }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .header { gap: 10px; padding: 0 14px; flex-wrap: wrap; height: auto; padding-top: 10px; padding-bottom: 10px; }
+      .hkpis { flex-wrap: wrap; gap: 10px; }
+      .hstatus { font-size: 8px; padding: 2px 8px; }
+      .main { padding: 12px 14px 40px; gap: 10px; }
+      .row-32, .row-2 { grid-template-columns: 1fr; }
+      .col { gap: 10px; }
+      .gait-row { grid-template-columns: repeat(2,1fr); gap: 10px; }
+      .pgrid { grid-template-columns: repeat(4,1fr); }
+      .planner-wrap { flex-direction: column; }
+      .plib { width: 100%; flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+      .ppills { flex-direction: row; flex-wrap: wrap; gap: 5px; }
+      .prec { width: 100%; }
+    }
+    @media (max-width: 600px) {
+      .hkpis { gap: 8px; }
+      .hk-val { font-size: 12px; }
+      .pgrid { grid-template-columns: repeat(7,1fr); overflow-x: auto; }
+      .p-grid-scroll { overflow-x: auto; }
+      .gait-row { grid-template-columns: repeat(2,1fr); }
+      .vo2-n { font-size: 44px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="hbrand">TRAINING LAB</div>
+  <div class="hsep"></div>
+  <div class="hkpis">
+    <div class="hkpi">
+      <span class="hk-lbl">CTL</span>
+      <span class="hk-val ctl" id="hctl">30</span>
+      <span class="hk-lbl">fitness</span>
+    </div>
+    <div class="hkpi">
+      <span class="hk-lbl">ATL</span>
+      <span class="hk-val atl" id="hatl">45</span>
+      <span class="hk-lbl">fatigue</span>
+    </div>
+    <div class="hkpi">
+      <span class="hk-lbl">TSB</span>
+      <span class="hk-val tsb" id="htsb">-15</span>
+      <span class="hk-lbl">form</span>
+    </div>
+    <div class="hkpi">
+      <span class="hk-lbl">VO₂</span>
+      <span class="hk-val vo2">52.4</span>
+      <span class="hk-lbl">max</span>
+    </div>
+  </div>
+  <div class="hstatus">⚠ fatigued — ease back</div>
+</header>
+
+<main class="main">
+
+  <!-- Row 1: Load chart + VO2 + Recents -->
+  <div class="row-32">
+
+    <!-- Training Load -->
+    <div class="card">
+      <div class="ch">
+        <div class="ch-t">Training Load — 6 weeks</div>
+        <div class="leg">
+          <div class="leg-i"><div class="leg-d" style="background:var(--blue)"></div> CTL</div>
+          <div class="leg-i"><div class="leg-d" style="background:var(--red)"></div> ATL</div>
+          <div class="leg-i"><div class="leg-d" style="background:var(--amber)"></div> TSB</div>
+        </div>
+      </div>
+      <div style="height:190px;position:relative">
+        <canvas id="loadChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Right col -->
+    <div class="col">
+
+      <!-- VO2 -->
+      <div class="card">
+        <div class="ch">
+          <div class="ch-t">VO₂ Max</div>
+          <div class="badge">5-week trend</div>
+        </div>
+        <div class="vo2-hero">
+          <div class="vo2-n">52.4</div>
+          <div class="vo2-u">ml/kg/min</div>
+          <div class="delta">+6.2 ↑</div>
+        </div>
+        <div style="height:55px;position:relative">
+          <canvas id="vo2Chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Recent -->
+      <div class="card" style="flex:1">
+        <div class="ch">
+          <div class="ch-t">Recent Workouts</div>
+        </div>
+        <div class="wlist" id="wlist"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Row 2: Gait -->
+  <div class="card">
+    <div class="ch">
+      <div class="ch-t">Gait Metrics</div>
+      <div class="badge">last session · Mar 14</div>
+    </div>
+    <div class="gait-row">
+
+      <div class="gm">
+        <div class="gm-ring">
+          <svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="35" fill="none" stroke="var(--surface-2)" stroke-width="6"/><circle cx="42" cy="42" r="35" fill="none" stroke="var(--blue)" stroke-width="6" stroke-dasharray="219.9" stroke-dashoffset="44" stroke-linecap="round"/></svg>
+          <div class="gm-inner"><div class="gm-val" style="color:var(--blue)">268</div><div class="gm-unit">ms</div></div>
+        </div>
+        <div class="gm-name">Ground Contact</div>
+        <div class="gm-status ok">↓ good range</div>
+      </div>
+
+      <div class="gm">
+        <div class="gm-ring">
+          <svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="35" fill="none" stroke="var(--surface-2)" stroke-width="6"/><circle cx="42" cy="42" r="35" fill="none" stroke="var(--amber)" stroke-width="6" stroke-dasharray="219.9" stroke-dashoffset="66" stroke-linecap="round"/></svg>
+          <div class="gm-inner"><div class="gm-val" style="color:var(--amber)">8.2</div><div class="gm-unit">cm</div></div>
+        </div>
+        <div class="gm-name">Vert. Oscillation</div>
+        <div class="gm-status warn">↑ reduce slightly</div>
+      </div>
+
+      <div class="gm">
+        <div class="gm-ring">
+          <svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="35" fill="none" stroke="var(--surface-2)" stroke-width="6"/><circle cx="42" cy="42" r="35" fill="none" stroke="var(--accent)" stroke-width="6" stroke-dasharray="219.9" stroke-dashoffset="88" stroke-linecap="round"/></svg>
+          <div class="gm-inner"><div class="gm-val" style="color:var(--accent)">1.24</div><div class="gm-unit">m</div></div>
+        </div>
+        <div class="gm-name">Stride Length</div>
+        <div class="gm-status ok">→ on target</div>
+      </div>
+
+      <div class="gm">
+        <div class="gm-ring">
+          <svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="35" fill="none" stroke="var(--surface-2)" stroke-width="6"/><circle cx="42" cy="42" r="35" fill="none" stroke="var(--red)" stroke-width="6" stroke-dasharray="219.9" stroke-dashoffset="110" stroke-linecap="round"/></svg>
+          <div class="gm-inner"><div class="gm-val" style="color:var(--red)">245</div><div class="gm-unit">W</div></div>
+        </div>
+        <div class="gm-name">Running Power</div>
+        <div class="gm-status ok">↑ strong output</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Row 3: Weekly Planner -->
+  <div class="card">
+    <div class="ch">
+      <div class="ch-t">Weekly Planner</div>
+      <div class="pvol" style="width:220px">
+        <div class="pvol-lbl">volume</div>
+        <div class="pvol-track"><div class="pvol-fill" id="pvolf" style="width:0%"></div></div>
+        <div class="pvol-val" id="pvolv">— hrs</div>
+      </div>
+    </div>
+
+    <div class="planner-wrap">
+      <div class="plib">
+        <div class="plib-t">Workouts</div>
+        <div class="ppills" id="ppills"></div>
+        <div class="prec">
+          <div class="prec-t">this week</div>
+          <div class="prec-body">2x zone 2 runs + 1 quality session. keep cycling easy — conversation pace.</div>
+        </div>
+      </div>
+      <div class="p-grid-scroll" style="flex:1;overflow-x:auto"><div class="pgrid" id="pgrid"></div></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const WEEKS  = ['Feb 3','Feb 10','Feb 17','Feb 24','Mar 3','Mar 10','Mar 17'];
+const CTL    = [22, 24, 26, 27, 28, 29, 30];
+const ATL    = [28, 32, 38, 35, 42, 40, 45];
+const TSB    = CTL.map((c,i) => c - ATL[i]);
+const VO2W   = ['Feb 3','Feb 10','Feb 17','Feb 24','Mar 3','Mar 10'];
+const VO2D   = [46.2, 47.8, 49.1, 50.5, 51.7, 52.4];
+
+const RECENTS = [
+  { name:'Evening Run',       date:'Mar 15', dot:'#FF4747', zone:'z4', dur:'42 min', tss:68 },
+  { name:'Cycling — Weekend', date:'Mar 14', dot:'#C8FF57', zone:'z2', dur:'1h 45m', tss:52 },
+  { name:'Gait Session',      date:'Mar 14', dot:'#FFB020', zone:null, dur:'55 min',  tss:45 },
+  { name:'Morning Run',       date:'Mar 12', dot:'#FF4747', zone:'z4', dur:'38 min', tss:62 },
+  { name:'Cycling — Solo',    date:'Mar 10', dot:'#C8FF57', zone:'z2', dur:'1h 10m', tss:42 },
+];
+
+const WORKOUT_TYPES = [
+  { id:'z2run',   name:'Zone 2 Run',  detail:'40–60 min · 130–145 bpm', type:'z2',      tss:45 },
+  { id:'quality', name:'Quality Run', detail:'Intervals / Tempo',       type:'quality', tss:75 },
+  { id:'cycling', name:'Cycling',     detail:'Conversation pace',       type:'cycling', tss:55 },
+  { id:'gait',    name:'Gait Session',detail:'Drills + form work',      type:'gait',    tss:40 },
+  { id:'rest',    name:'Rest / Easy', detail:'Walk or full rest',       type:'rest',    tss:0  },
+];
+
+// Suggested plan (Mon–Sun)
+const SUGGESTED = [['z2run'],['gait'],['quality'],['rest'],['z2run'],['cycling'],['rest']];
+
+// ── CHARTS ────────────────────────────────────────────────────────────────────
+
+const tooltipDefaults = {
+  backgroundColor: '#161616',
+  borderColor: '#252525',
+  borderWidth: 1,
+  titleColor: '#666',
+  bodyColor: '#eee',
+  titleFont: { family: 'DM Mono', size: 9 },
+  bodyFont:  { family: 'DM Mono', size: 11 },
+  padding: 10,
+  cornerRadius: 6,
+};
+
+const axisX = {
+  grid:   { color: 'rgba(255,255,255,0.025)', drawBorder: false },
+  ticks:  { color: '#3a3a3a', font: { family: 'DM Mono', size: 9 } },
+  border: { color: '#1C1C1C' },
+};
+const axisY = {
+  grid:   { color: 'rgba(255,255,255,0.025)' },
+  ticks:  { color: '#3a3a3a', font: { family: 'DM Mono', size: 9 } },
+  border: { display: false },
+};
+
+new Chart(document.getElementById('loadChart'), {
+  type: 'line',
+  data: {
+    labels: WEEKS,
+    datasets: [
+      {
+        label: 'CTL', data: CTL,
+        borderColor: '#4DA6FF', borderWidth: 2,
+        pointRadius: 3, pointBackgroundColor: '#4DA6FF',
+        tension: 0.4, fill: false,
+      },
+      {
+        label: 'ATL', data: ATL,
+        borderColor: '#FF4747', borderWidth: 2,
+        pointRadius: 3, pointBackgroundColor: '#FF4747',
+        tension: 0.4, fill: false,
+      },
+      {
+        label: 'TSB', data: TSB,
+        borderColor: '#FFB020', borderWidth: 2,
+        pointRadius: 3, pointBackgroundColor: '#FFB020',
+        tension: 0.4,
+        fill: { target: { value: 0 }, above: 'rgba(255,176,32,0.05)', below: 'rgba(255,71,71,0.08)' },
+      },
+    ],
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: tooltipDefaults },
+    scales: { x: axisX, y: axisY },
+  },
+});
+
+new Chart(document.getElementById('vo2Chart'), {
+  type: 'line',
+  data: {
+    labels: VO2W,
+    datasets: [{
+      data: VO2D,
+      borderColor: '#C8FF57', borderWidth: 2,
+      pointRadius: 2, pointBackgroundColor: '#C8FF57',
+      tension: 0.4,
+      fill: { target: 'origin', above: 'rgba(200,255,87,0.06)' },
+    }],
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { ...tooltipDefaults, callbacks: { label: ctx => ` VO₂: ${ctx.raw}` } } },
+    scales: {
+      x: { display: false },
+      y: { ...axisY, min: 44, max: 55, ticks: { ...axisY.ticks, maxTicksLimit: 3 } },
+    },
+  },
+});
+
+// ── RECENT WORKOUTS ───────────────────────────────────────────────────────────
+
+const wlistEl = document.getElementById('wlist');
+RECENTS.forEach(w => {
+  const div = document.createElement('div');
+  div.className = 'wi';
+  div.innerHTML = `
+    <div class="wi-dot" style="background:${w.dot}"></div>
+    <div class="wi-info">
+      <div class="wi-name">${w.name}</div>
+      <div class="wi-meta">
+        ${w.date} · ${w.dur}
+        ${w.zone ? `<span class="ztag ${w.zone}">${w.zone === 'z4' ? 'ZONE 4' : 'ZONE 2'}</span>` : ''}
+      </div>
+    </div>
+    <div class="wi-tss">${w.tss} TSS</div>
+  `;
+  wlistEl.appendChild(div);
+});
+
+// ── WEEKLY PLANNER ────────────────────────────────────────────────────────────
+
+const DAYS   = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+const today  = new Date();
+const dow    = today.getDay();
+const off    = dow === 0 ? -6 : 1 - dow;
+const monday = new Date(today);
+monday.setDate(today.getDate() + off);
+
+const slotData = {}; // dayIndex → [workoutId, ...]
+DAYS.forEach((_, i) => { slotData[i] = [...(SUGGESTED[i] || [])]; });
+
+// Build library pills
+const ppillsEl = document.getElementById('ppills');
+WORKOUT_TYPES.forEach(w => {
+  const el = document.createElement('div');
+  el.className = 'ppill';
+  el.draggable = true;
+  el.dataset.wid = w.id;
+  el.innerHTML = `
+    <div class="ppill-dot dot-${w.type}"></div>
+    <div>
+      <div class="ppill-name">${w.name}</div>
+      <div class="ppill-detail">${w.detail}</div>
+    </div>
+  `;
+  el.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('wid', w.id);
+    e.dataTransfer.setData('src', 'lib');
+    el.classList.add('dragging');
+  });
+  el.addEventListener('dragend', () => el.classList.remove('dragging'));
+  ppillsEl.appendChild(el);
+});
+
+// Build day columns
+const pgridEl = document.getElementById('pgrid');
+
+function renderSlot(slotEl, dayIdx) {
+  slotEl.innerHTML = '';
+  slotData[dayIdx].forEach((wid, idx) => {
+    const w = WORKOUT_TYPES.find(x => x.id === wid);
+    if (!w) return;
+    const card = document.createElement('div');
+    card.className = `pcard t-${w.type}`;
+    card.draggable = true;
+    card.innerHTML = `
+      <div class="pcard-name">${w.name}</div>
+      <div class="pcard-tss">${w.tss > 0 ? `~${w.tss} TSS` : 'no load'}</div>
+      <button class="pcard-rm" title="remove">✕</button>
+    `;
+    card.addEventListener('dragstart', e => {
+      e.stopPropagation();
+      e.dataTransfer.setData('wid', wid);
+      e.dataTransfer.setData('src', 'card');
+      e.dataTransfer.setData('fromDay', dayIdx);
+      e.dataTransfer.setData('fromIdx', idx);
+      card.classList.add('dragging');
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.querySelector('.pcard-rm').addEventListener('click', e => {
+      e.stopPropagation();
+      slotData[dayIdx].splice(idx, 1);
+      renderSlot(slotEl, dayIdx);
+      updateVolume();
+    });
+    slotEl.appendChild(card);
+  });
+}
+
+function updateVolume() {
+  let tss = 0;
+  Object.values(slotData).forEach(wids => {
+    wids.forEach(wid => {
+      const w = WORKOUT_TYPES.find(x => x.id === wid);
+      if (w) tss += w.tss;
+    });
+  });
+  const hrs    = (tss / 50).toFixed(1);
+  const target = 5;
+  const pct    = Math.min(100, (parseFloat(hrs) / target) * 100);
+  document.getElementById('pvolf').style.width = pct + '%';
+  document.getElementById('pvolv').textContent = `${hrs}/${target} hrs`;
+}
+
+DAYS.forEach((day, i) => {
+  const d = new Date(monday);
+  d.setDate(monday.getDate() + i);
+  const isToday = d.toDateString() === today.toDateString();
+
+  const dayEl = document.createElement('div');
+  dayEl.className = 'pday';
+  dayEl.innerHTML = `
+    <div class="pday-lbl${isToday ? ' today' : ''}">
+      ${day}<span class="pday-dt">${d.getDate()}</span>
+    </div>
+  `;
+
+  const slot = document.createElement('div');
+  slot.className = 'pslot';
+  slot.dataset.day = i;
+
+  slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('dragover'); });
+  slot.addEventListener('dragleave', () => slot.classList.remove('dragover'));
+  slot.addEventListener('drop', e => {
+    e.preventDefault();
+    slot.classList.remove('dragover');
+    const wid     = e.dataTransfer.getData('wid');
+    const src     = e.dataTransfer.getData('src');
+    const fromDay = parseInt(e.dataTransfer.getData('fromDay'));
+    const fromIdx = parseInt(e.dataTransfer.getData('fromIdx'));
+    const toDay   = i;
+    if (!wid) return;
+    if (src === 'card' && !isNaN(fromDay) && fromDay !== toDay) {
+      slotData[fromDay].splice(fromIdx, 1);
+      const fromSlot = document.querySelector(`.pslot[data-day="${fromDay}"]`);
+      if (fromSlot) renderSlot(fromSlot, fromDay);
+    }
+    slotData[toDay].push(wid);
+    renderSlot(slot, toDay);
+    updateVolume();
+  });
+
+  dayEl.appendChild(slot);
+  pgridEl.appendChild(dayEl);
+  renderSlot(slot, i);
+});
+
+updateVolume();
+</script>
+</body>
+</html>
