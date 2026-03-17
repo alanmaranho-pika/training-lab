@@ -337,17 +337,17 @@
   <div class="hkpis">
     <div class="hkpi">
       <span class="hk-lbl">CTL</span>
-      <span class="hk-val ctl" id="hctl">30</span>
+      <span class="hk-val ctl" id="hctl">29</span>
       <span class="hk-lbl">fitness</span>
     </div>
     <div class="hkpi">
       <span class="hk-lbl">ATL</span>
-      <span class="hk-val atl" id="hatl">45</span>
+      <span class="hk-val atl" id="hatl">26</span>
       <span class="hk-lbl">fatigue</span>
     </div>
     <div class="hkpi">
       <span class="hk-lbl">TSB</span>
-      <span class="hk-val tsb" id="htsb">-15</span>
+      <span class="hk-val tsb" id="htsb">-5</span>
       <span class="hk-lbl">form</span>
     </div>
     <div class="hkpi">
@@ -355,8 +355,13 @@
       <span class="hk-val vo2">52.4</span>
       <span class="hk-lbl">max</span>
     </div>
+    <div class="hkpi">
+      <span class="hk-lbl">ratio</span>
+      <span class="hk-val" style="color:var(--accent)">0.92</span>
+      <span class="hk-lbl">atl/ctl</span>
+    </div>
   </div>
-  <div class="hstatus">⚠ fatigued — ease back</div>
+  <div class="hstatus" style="color:var(--accent);border-color:rgba(200,255,87,0.35);background:var(--accent-dim)">✓ balanced — sweet spot</div>
 </header>
 
 <main class="main">
@@ -486,8 +491,8 @@
 // ── DATA ──────────────────────────────────────────────────────────────────────
 
 const WEEKS  = ['Feb 3','Feb 10','Feb 17','Feb 24','Mar 3','Mar 10','Mar 17'];
-const CTL    = [22, 24, 26, 27, 28, 29, 30];
-const ATL    = [28, 32, 38, 35, 42, 40, 45];
+const CTL    = [21, 23, 24, 25, 26, 27, 29];
+const ATL    = [25, 30, 35, 28, 31, 28, 26];
 const TSB    = CTL.map((c,i) => c - ATL[i]);
 const VO2W   = ['Feb 3','Feb 10','Feb 17','Feb 24','Mar 3','Mar 10'];
 const VO2D   = [46.2, 47.8, 49.1, 50.5, 51.7, 52.4];
